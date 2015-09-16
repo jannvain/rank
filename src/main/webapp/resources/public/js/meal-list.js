@@ -6,26 +6,47 @@ angular.module('mealList', [])
         });
     }
 })
+
 .filter('user', function () {
     return function (input, currSel) {
         return _.filter(input, function (item) {
-            return currSel != "ALL" ? item.userName == currSel : true;
+            return currSel != "ALL" && currSel!="Not ranked" ? item.nickName == currSel : true;
+        });
+    }
+})
+.filter('ranked', function () {
+    return function (input, currSel) {
+    	//console.log(currSel.nickName + " : " + item.hasVoted);
+        return _.filter(input, function (item) {
+            return currSel.nickName!="Not ranked" ? true : !item.hasVoted;
         });
     }
 })
 
-.controller('MealListCtrl', ['$scope' , 'MealService', 'UserService', 'NewUserService', '$timeout',
-                                function ($scope, MealService, UserService, NewUserService, $timeout) {
+.controller('MealListCtrl', ['$rootScope', '$scope' , 'MealService', 'NewUserService', 'TimeService', '$timeout',
+                                function ($rootScope, $scope, MealService, NewUserService, TimeService, $timeout) {
 
 	
 	$scope.showDetails = false;
 	$scope.newButtonClicked=false;
 	$scope.detailButtonClicked=false;
-	$scope.cdebug = function(){
-		console.log("CLICK");
-	}
-	console.log("In MealListCtrl ");
+	$scope.showNewMealButton = true;
 
+	console.log("In MealListCtrl ");
+	$scope.$emit('progressUpdate', {message: "Loading meal data"});
+
+	$scope.um = {};
+	$scope.gm = {};
+	$scope.showNumOfPages=1;
+	$scope.numOfItemsInPages=10;
+	
+	$scope.showNumOfItems = $scope.numOfItemsInPages * $scope.showNumOfPages;
+	$scope.moreItems = function(){
+		if($scope.showNumOfPages<$scope.vm.totalPages){
+				$scope.showNumOfPages += 1;
+				$scope.showNumOfItems = $scope.numOfItemsInPages * $scope.showNumOfPages;
+		}
+	}
     $scope.vm = {
             currentPage: 1,
             totalPages: 0,
@@ -34,40 +55,36 @@ angular.module('mealList', [])
             isSelectionEmpty: true,
             errorMessages: [],
             infoMessages: [],
-            currSel: {"userName":"ALL","groupName":"ALL"}
+            currSel: {"nickName":"ALL","groupName":"ALL", "ranked": false}
      };
  		$scope.loggingOut = false;
 
-    	$scope.$emit('headerChanged', {viewTitle:"RankMyFood", notInRoot: false});
-
+    	$scope.$emit('headerChanged', {viewTitle:"Latest", notInRoot: false});
+    	$scope.pad = function(a,b){return(1e15+a+"").slice(-b)}
+    	
+		$scope.showDate = function(date){
+			
+			
+			return TimeService.niceDateDisplay(date);
+			/*
+			var cToday = new Date();
+			var cYesterday = new Date(cToday.getFullYear(), cToday.getMonth(), cToday.getDate()-1);
+			var sToday = cToday.getFullYear() + "/" + $scope.pad(cToday.getMonth() + 1,2) + "/" + $scope.pad(cToday.getDate(),2);
+			var sYesterday = cYesterday .getFullYear() + "/" + $scope.pad(cYesterday .getMonth() + 1,2) + "/" + 
+			$scope.pad(cYesterday .getDate(),2);
+			
+			// console.log(sToday + " : " + sYesterday + " : " + date );
+			if(sToday == date)
+				date="Today";
+			else if(sYesterday == date)
+				date="Yesterday"
+			return date;*/
+		}
         NewUserService.updateUserInfoPromise().then(function(data){
         	$scope.um = data;
-            loadMyMealData($scope.um.groupName, 1); // TEST WAS USER
-        })
-
-/*        updateUserInfo();        	 */
-        
- /*       $scope.tmpUser = NewUserService.getUserInfo();
-        console.log("TMPUSER");
-        console.log($scope.tmpUser);
-        function showErrorMessage(errorMessage) {
-            clearMessages();
-            $scope.vm.errorMessages.push({description: errorMessage});
-        }
-*/
-        function updateUserInfo() {
-            UserService.getUserInfo()
-                .then(function (userInfo) {
-                    $scope.vm.userName = userInfo.userName;
-                    $scope.vm.groupName = userInfo.groupName;
-                    loadMyGroupMembers($scope.vm.groupName);
-                    loadMyMealData($scope.vm.groupName, 1); // TEST WAS USER
-                },
-                function (errorMessage) {
-                    showErrorMessage(errorMessage);
-                });
-                        
-        }
+            LoadGroupMeals($scope.um.groupName, 1); // TEST WAS USER
+            NewUserService.loadMyGroupMembers($scope, $scope.um.groupName);
+        });
 
         function markAppAsInitialized() {
             if ($scope.vm.appReady == undefined) {
@@ -75,14 +92,7 @@ angular.module('mealList', [])
             }
         }
         
-        function loadMyGroupMembers(groupname) {
-        	UserService.searchGroupMembers(groupname).then(function (data) {
-        		$scope.vm.groupMembers = data;
-        		$scope.vm.groupMembers.unshift({"userName":"ALL","groupName":"ALL"});
-        	});
-        }
-        
-        function loadMyMealData(username, pageNumber) {
+         function LoadGroupMeals(username, pageNumber) {
             MealService.searchGroupMeals(username, pageNumber)        
                 .then(function (data) {
                     $scope.vm.errorMessages = [];
@@ -95,8 +105,12 @@ angular.module('mealList', [])
                         meal.averageRankDisplayed = $scope.plotRank(meal.averageRank, 1);
                         $scope.imageNames.push(meal.imageName); 
                         meal.imageName="noimage";
+                    	$scope.$emit('progressUpdate', {message: ""});
+                    	meal.voteCount = meal.rank.length;
+
                         return meal;
                     });
+                    $rootScope.timeSinceLastMeal = $rootScope.updateTimeSinceLastMeal( $scope.vm.meals, $scope.um);
 
 //                    $scope.vm.meals = _.cloneDeep($scope.vm.originalMeals);
 
@@ -164,7 +178,7 @@ angular.module('mealList', [])
         $scope.logout = function () {
         	console.log("LOGOUT");
         	$scope.vm.appReady = false;
-            UserService.logout();
+            NewUserService.logout();
         }
         $scope.mealDetail = function(mealId){
         	MealService.getMealDetails(mealId);
