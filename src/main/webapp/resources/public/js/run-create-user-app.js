@@ -5,6 +5,7 @@
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 require.config({
+    waitSeconds: 200,
     paths: {
         angular: '../../bower_components/angular/angular',
         angularMessages: '../../bower_components/angular-messages/angular-messages',
@@ -37,3 +38,4 @@ require(['createUserApp'], function () {
     angular.bootstrap(document.getElementById('createUserApp'), ['newUserApp']);
 
 });
+

@@ -1,10 +1,11 @@
 <!DOCTYPE html>
 <html>
 <head lang="en" >
-    <meta charset="UTF-8">
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />    
+<meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Meal Ranking</title>
-	<meta content="utf-8" http-equiv="encoding">
+    <meta content="utf-8" http-equiv="encoding">
 
     <link rel="stylesheet" href="/resources/bower_components/pure/pure-min.css">
     <link rel="stylesheet" href="/resources/bower_components/pure/grids-responsive-min.css">
@@ -25,17 +26,17 @@
 <body  class="innerBody" id="mealRankApp" ng-controller="MainCtrl">
 	<div class="headerBar">
 		<div class="left" ng-cloak>
-			<h1 class="dark">{{headerData.viewTitle}}&nbsp;</h1>
+			<h1>{{headerData.viewTitle}}&nbsp;</h1>
 		</div>
 		<div class="right" ng-cloak>
   			<h1  ng-switch="headerData.notInRoot">
    				<span ng-switch-when="true">
-			  		<a class="button-transparent" href="#/">
+			  		<a class="button-transparent white" href="#/">
 		  				<span class="fa fa-arrow-circle-left"></span>
 	  				</a>
    				</span>
    				<span ng-switch-when="false">
-	 			  	<div dropdown-menu="ddMenuOptions" dropdown-model="ddMenuSelected" class="button-transparent mod-btn-menu">
+	 			  	<div dropdown-menu="ddMenuOptions" dropdown-model="ddMenuSelected" class="button-transparent white mod-btn-menu">
   						<span class="fa fa-bars"></span>
   					</div>
    				</span>

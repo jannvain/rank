@@ -92,3 +92,4 @@ require(['mealRankApp'], function () {
     angular.bootstrap(document.getElementById('mealRankApp'), ['ngRoute', 'googlechart', 'ngAnimate', 'nvd3ChartDirectives', 'vesparny.fancyModal', 'ngDropdowns', 'ngFileUpload', 'mealRankApp', 'angular-datepicker']);
 
 });
+

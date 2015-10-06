@@ -92,7 +92,7 @@ var app = angular.module('mealRankApp', ['ngRoute',  'ngFileUpload', 'ngAnimate'
 .run(['$rootScope', '$location', '$http', '$route',
       function ($rootScope, $location, $http, $route) {
 	
- 
+
     
     $rootScope.$on('$locationChangeStart', function (event, next, current) {
         // console.log($location.path());
